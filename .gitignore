@@ -141,3 +141,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+# Vivado / Xilinx temporary files
+*.log
+*.jou
+*.str
+*.os
+.Xil/
+xsim.dir/
+xvlog.pb
+xsim.jou
+xsim.log
+hd_visual/
