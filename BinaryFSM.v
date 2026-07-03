@@ -1,0 +1,97 @@
+module BinaryFSM
+#( //Binary encoding of states
+  parameter  statewidth = 3,
+             An0 = 3'b000,
+             An45 = 3'b001 ,
+             An90 = 3'b010,
+             An135 = 3'b011,
+             An180 = 3'b100 ,
+             An225 = 3'b101,
+             An270 = 3'b110,
+             An315 = 3'b111)
+( //ports
+  input wire clk,reset,MovCW,MovCCW,
+  input wire [(statewidth-1):0] PhysicalPosition,
+  output wire [(statewidth - 1):0] DesiredPosition,Poserror);
+  
+  reg [(statewidth-1):0] Currentstate, Desiredstate,Nextstate ;
+
+  //body of fsm is case statement
+  //Next state logic
+  always @(MovCW or MovCCW or PhysicalPosition or Currentstate)
+  //this block is a combinational block that makes sure to run the code whenever one of the sensitivity list items change their value
+  begin: combinational
+      case(Currentstate)
+      An0:
+          if (MovCW == 1)
+             Nextstate = An45;
+          else if (MovCCW == 1)
+             Nextstate = An315;
+          else 
+             Nextstate = An0;
+      An45:
+          if (MovCW == 1)
+             Nextstate = An90;
+          else if (MovCCW == 1)
+             Nextstate = An0;
+          else 
+             Nextstate = An45;
+      An90:
+          if (MovCW == 1) 
+             Nextstate = An135;
+          else if (MovCCW == 1)
+             Nextstate = An45;
+          else 
+             Nextstate = An90;
+      An135:
+          if(MovCW == 1)
+             Nextstate = An180;
+          else if (MovCCW == 1)
+             Nextstate = An90;
+          else 
+             Nextstate = An135;
+      An180:
+          if(MovCW == 1)  
+             Nextstate = An225;
+          else if (MovCCW == 1)
+             Nextstate = An135;
+          else 
+             Nextstate = An180;
+      An225:
+          if(MovCW == 1)      
+             Nextstate = An270;
+          else if (MovCCW == 1)
+             Nextstate = An180;
+          else 
+             Nextstate = An225;
+      An270:
+          if(MovCW == 1)
+             Nextstate = An315;
+          else if (MovCCW == 1)
+             Nextstate = An225;
+          else 
+             Nextstate = An270;
+      An315:
+          if(MovCW == 1)
+             Nextstate = An0;
+          else if (MovCCW == 1)
+             Nextstate = An270;
+          else 
+             Nextstate = An315;
+      default: 
+             Nextstate = PhysicalPosition; //default case to avoid latches
+      endcase
+  end
+  //current state register
+  always @(posedge clk or negedge reset)
+  begin: Sequential
+         if(!reset)
+            Currentstate <= PhysicalPosition;
+        else
+            Currentstate <= Nextstate;
+  end
+//output logic
+//moore outputs
+  assign DesiredPosition = Currentstate; //only depends on the current state
+  assign Poserror = (Currentstate == PhysicalPosition) ? 1'b0 : 1'b1; //error signal is high if the current state does not match the physical position
+endmodule
